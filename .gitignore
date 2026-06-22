@@ -1,0 +1,57 @@
+# --- AlloCap Improved .gitignore ---
+
+# [IMPORTANT] Always ignore build directories recursively
+build/
+**/build/
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+local.properties
+.kotlin/
+kotlin-daemon-*.sys.err.log
+
+# Android Studio / IntelliJ files
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+captures/
+.externalNativeBuild
+.cxx/
+
+# Built application files (Binary)
+*.apk
+*.aar
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Memory dumps and heavy logs
+*.hprof
+*.log
+*.db-journal
+
+# Keystore and Secrets (NEVER push these to GitHub)
+*.jks
+*.keystore
+*.p12
+*.key
+*.pem
+secrets.xml
+google-services.json
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Whitelist important files that might be caught by broad patterns
+!gradle/wrapper/gradle-wrapper.properties
+!gradle/wrapper/gradle-wrapper.jar
+!libs.versions.toml
+!proguard-rules.pro
