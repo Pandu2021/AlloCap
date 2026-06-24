@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- Latar Belakang Kotak Melengkung (Squircle) -->
+  <rect x="25" y="25" width="450" height="450" rx="110" ry="110" fill="#F4F4F0" />
+
+  <!-- Grup Objek Utama untuk Penyelarasan Posisi -->
+  <g transform="translate(0, -5)">
+    <!-- Karakter Huruf "A" Utama -->
+    <path d="M 215,145 L 285,145 L 405,370 L 330,370 L 303,315 L 197,315 L 170,370 L 95,370 Z" fill="#1B4D3E" />
+    
+    <!-- Potongan Segitiga Dalam Huruf "A" -->
+    <polygon points="250,190 288,265 212,265" fill="#F4F4F0" />
+    
+    <!-- Ikon Topi / Kubah di Tengah -->
+    <!-- Batas Bawah Topi -->
+    <rect x="180" y="283" width="140" height="8" rx="2" fill="#F4F4F0" />
+    
+    <!-- Kubah Melengkung -->
+    <path d="M 195,283 A 55,55 0 0,1 305,283 Z" fill="#F4F4F0" />
+    
+    <!-- Bagian runcing di atas kubah -->
+    <polygon points="250,210 255,235 245,235" fill="#F4F4F0" />
+  </g>
+</svg>
