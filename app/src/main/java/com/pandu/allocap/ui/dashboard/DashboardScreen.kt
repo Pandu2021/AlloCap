@@ -1,16 +1,15 @@
 package com.pandu.allocap.ui.dashboard
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Psychology
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.key
@@ -20,22 +19,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.pandu.allocap.data.model.Transaction
 import com.pandu.allocap.ui.components.AllocationChart
 import com.pandu.allocap.ui.components.QuickActionGrid
 import com.pandu.allocap.ui.components.AddTransactionBottomSheet
 import com.pandu.allocap.ui.components.TransactionRow
-import com.pandu.allocap.ui.theme.DeepSpruce
-import com.pandu.allocap.ui.theme.PaleSageMint
-import com.pandu.allocap.ui.theme.WarmTerracotta
-import com.pandu.allocap.ui.theme.ColorNeeds
-import com.pandu.allocap.ui.theme.ColorWants
-import com.pandu.allocap.ui.theme.ColorSavings
-import com.pandu.allocap.ui.theme.AlloCapTheme
+import com.pandu.allocap.ui.theme.*
 import java.util.Locale
 
 @Composable
@@ -120,56 +115,62 @@ fun DashboardContent(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                items(
+            items(
                     items = state.recentTransactions,
                     key = { it.id }
                 ) { transaction ->
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = {
-                            when (it) {
-                                SwipeToDismissBoxValue.EndToStart -> {
-                                    onDeleteTransaction(transaction)
-                                    true
-                                }
-                                SwipeToDismissBoxValue.StartToEnd -> {
-                                    onNavigateTo("edit_transaction_${transaction.id}")
-                                    false
-                                }
-                                else -> false
-                            }
-                        }
-                    )
-
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            val color = when (dismissState.dismissDirection) {
-                                SwipeToDismissBoxValue.StartToEnd -> WarmTerracotta
-                                SwipeToDismissBoxValue.EndToStart -> Color(0xFFE57373)
-                                else -> Color.Transparent
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(color)
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) 
-                                    Alignment.CenterStart else Alignment.CenterEnd
-                            ) {
-                                if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
-                                    Icon(Icons.Outlined.Edit, contentDescription = "Edit", tint = Color.White)
-                                } else if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
-                                    Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = Color.White)
-                                }
-                            }
-                        }
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
                     ) {
-                        Surface(color = PaleSageMint) {
-                            TransactionRow(transaction = transaction)
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                when (it) {
+                                    SwipeToDismissBoxValue.EndToStart -> {
+                                        onDeleteTransaction(transaction)
+                                        true
+                                    }
+                                    SwipeToDismissBoxValue.StartToEnd -> {
+                                        onNavigateTo("edit_transaction_${transaction.id}")
+                                        false
+                                    }
+                                    else -> false
+                                }
+                            }
+                        )
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                val color = when (dismissState.dismissDirection) {
+                                    SwipeToDismissBoxValue.StartToEnd -> WarmTerracotta
+                                    SwipeToDismissBoxValue.EndToStart -> Color(0xFFE57373)
+                                    else -> Color.Transparent
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(color)
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) 
+                                        Alignment.CenterStart else Alignment.CenterEnd
+                                ) {
+                                    if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
+                                        Icon(Icons.Outlined.Edit, contentDescription = "Edit", tint = Color.White)
+                                    } else if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                        Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = Color.White)
+                                    }
+                                }
+                            }
+                        ) {
+                            Surface(color = PaleSageMint) {
+                                TransactionRow(transaction = transaction)
+                            }
                         }
                     }
-                    Divider(color = DeepSpruce.copy(alpha = 0.05f))
+                    HorizontalDivider(color = DeepSpruce.copy(alpha = 0.05f))
                 }
                 
                 item {
@@ -251,11 +252,23 @@ fun DashboardTopBar(greeting: String, userName: String, onNavigateTo: (String) -
             }
             Spacer(modifier = Modifier.width(8.dp))
             Surface(
-                onClick = { onNavigateTo("settings") },
+                onClick = { onNavigateTo("profile") },
                 shape = CircleShape,
-                color = WarmTerracotta
+                color = PremiumTeal,
+                modifier = Modifier
+                    .size(44.dp)
+                    .border(2.dp, ElectricMint.copy(alpha = 0.5f), CircleShape)
+                    .shadow(8.dp, CircleShape)
             ) {
-                Box(modifier = Modifier.size(40.dp))
+                // Here we show the avatar or a simple initial
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Outlined.Person,
+                        contentDescription = "Profile",
+                        tint = ElectricMint,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }

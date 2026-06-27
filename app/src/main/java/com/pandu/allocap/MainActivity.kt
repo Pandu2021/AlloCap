@@ -5,7 +5,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -17,6 +22,8 @@ import com.pandu.allocap.ui.envelopes.EnvelopeStatusScreen
 import com.pandu.allocap.ui.envelopes.EnvelopeViewModel
 import com.pandu.allocap.ui.ledger.LedgerScreen
 import com.pandu.allocap.ui.ledger.LedgerViewModel
+import com.pandu.allocap.ui.profile.ProfileScreen
+import com.pandu.allocap.ui.profile.ProfileViewModel
 import com.pandu.allocap.ui.sandbox.SandboxScreen
 import com.pandu.allocap.ui.sandbox.SandboxViewModel
 import com.pandu.allocap.ui.settings.SettingsScreen
@@ -42,75 +49,94 @@ class MainActivity : ComponentActivity() {
         val ledgerViewModel = LedgerViewModel(dao)
         val settingsViewModel = SettingsViewModel(dao)
         val envelopeViewModel = EnvelopeViewModel(dao)
+        val profileViewModel = ProfileViewModel(userRepository)
 
         scheduleBudgetWorker()
 
         setContent {
-            var currentScreen by remember { mutableStateOf("welcome") }
+            val navController = rememberNavController()
 
             AlloCapTheme {
-                when (currentScreen) {
-                    "welcome" -> WelcomeScreen(
-                        viewModel = welcomeViewModel,
-                        onUnlockSuccess = {
-                            currentScreen = "dashboard"
-                        }
-                    )
-                    "dashboard" -> {
-                        BackHandler { currentScreen = "welcome" }
-                        DashboardScreen(
-                            viewModel = dashboardViewModel,
-                            onNavigateTo = { action ->
-                                when (action) {
-                                    "sandbox" -> currentScreen = "sandbox"
-                                    "analytics" -> currentScreen = "ledger"
-                                    "settings" -> currentScreen = "settings"
-                                    "envelope" -> currentScreen = "envelopes"
-                                    else -> {
-                                        if (action.startsWith("edit_transaction_")) {
-                                            Toast.makeText(this, "Opening Edit Mode...", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(this, "Action: $action", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
+                NavHost(
+                    navController = navController,
+                    startDestination = "welcome",
+                    enterTransition = {
+                        slideInHorizontally(
+                            initialOffsetX = { 1000 },
+                            animationSpec = tween(500)
+                        ) + fadeIn(animationSpec = tween(500))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(
+                            targetOffsetX = { -1000 },
+                            animationSpec = tween(500)
+                        ) + fadeOut(animationSpec = tween(500))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(
+                            initialOffsetX = { -1000 },
+                            animationSpec = tween(500)
+                        ) + fadeIn(animationSpec = tween(500))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(
+                            targetOffsetX = { 1000 },
+                            animationSpec = tween(500)
+                        ) + fadeOut(animationSpec = tween(500))
+                    }
+                ) {
+                    composable("welcome") {
+                        WelcomeScreen(
+                            viewModel = welcomeViewModel,
+                            onUnlockSuccess = {
+                                navController.navigate("dashboard") {
+                                    popUpTo("welcome") { inclusive = true }
                                 }
                             }
                         )
                     }
-                    "sandbox" -> {
-                        BackHandler { currentScreen = "dashboard" }
+                    composable("dashboard") {
+                        DashboardScreen(
+                            viewModel = dashboardViewModel,
+                            onNavigateTo = { action ->
+                                when (action) {
+                                    "sandbox" -> navController.navigate("sandbox")
+                                    "analytics" -> navController.navigate("ledger")
+                                    "settings" -> navController.navigate("settings")
+                                    "envelope" -> navController.navigate("envelopes")
+                                    "profile" -> navController.navigate("profile")
+                                }
+                            }
+                        )
+                    }
+                    composable("profile") {
+                        ProfileScreen(
+                            viewModel = profileViewModel,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("sandbox") {
                         SandboxScreen(
                             viewModel = sandboxViewModel,
-                            onNavigateBack = {
-                                currentScreen = "dashboard"
-                            }
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
-                    "ledger" -> {
-                        BackHandler { currentScreen = "dashboard" }
+                    composable("ledger") {
                         LedgerScreen(
                             viewModel = ledgerViewModel,
-                            onNavigateBack = {
-                                currentScreen = "dashboard"
-                            }
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
-                    "envelopes" -> {
-                        BackHandler { currentScreen = "dashboard" }
+                    composable("envelopes") {
                         EnvelopeStatusScreen(
                             viewModel = envelopeViewModel,
-                            onNavigateBack = {
-                                currentScreen = "dashboard"
-                            }
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
-                    "settings" -> {
-                        BackHandler { currentScreen = "dashboard" }
+                    composable("settings") {
                         SettingsScreen(
                             viewModel = settingsViewModel,
-                            onNavigateBack = {
-                                currentScreen = "dashboard"
-                            }
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }

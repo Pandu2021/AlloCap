@@ -2,6 +2,7 @@ package com.pandu.allocap.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -37,77 +38,88 @@ import kotlin.math.roundToInt
 @Composable
 fun SwipeToUnlockSlider(
     modifier: Modifier = Modifier,
-    text: String = "Slide to Unlock Access",
+    text: String = "Slide to authorize access",
     onUnlocked: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    var trackWidth by remember { mutableStateOf(0) }
+    var trackWidth by remember { mutableIntStateOf(0) }
     val thumbSize = 56.dp
     val thumbSizePx = with(LocalDensity.current) { thumbSize.toPx() }
     
-    // Use Animatable for smooth, controlled motion
     val thumbOffset = remember { Animatable(0f) }
     val maxOffset = if (trackWidth > 0) trackWidth - thumbSizePx else 0f
 
-    // Pulsing animation for the thumb to invite interaction
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
+    // Glowing animation for the thumb
+    val infiniteTransition = rememberInfiniteTransition(label = "glow")
+    val glowIntensity by infiniteTransition.animateFloat(
+        initialValue = 2.dp.value,
+        targetValue = 12.dp.value,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
+            animation = tween(1500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "pulseScale"
+        label = "glowIntensity"
     )
 
-    // Calculate alpha for the hint text based on swipe progress
+    // Shimmer effect for the track text
+    val shimmerOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmer"
+    )
+
     val textAlpha = (1f - (thumbOffset.value / (maxOffset.takeIf { it > 0 } ?: 1f))).coerceIn(0f, 1f)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(72.dp)
             .clip(CircleShape)
             .background(
                 Brush.horizontalGradient(
                     colors = listOf(
-                        DeepSpruce.copy(alpha = 0.05f),
-                        DeepSpruce.copy(alpha = 0.12f)
+                        Color.White.copy(alpha = 0.1f),
+                        Color.White.copy(alpha = 0.05f)
                     )
                 )
             )
+            .border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
             .onGloballyPositioned { trackWidth = it.size.width },
         contentAlignment = Alignment.CenterStart
     ) {
-        // Track Hint Text
+        // Track Hint Text with Shimmer
         Text(
             text = text,
             modifier = Modifier
                 .align(Alignment.Center)
                 .alpha(textAlpha),
-            color = DeepSpruce.copy(alpha = 0.6f),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.5.sp
+            color = Color.White.copy(alpha = 0.8f),
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
         )
 
         // The Sliding Thumb
         Box(
             modifier = Modifier
                 .offset { IntOffset(thumbOffset.value.roundToInt(), 0) }
-                .size(thumbSize)
+                .size(thumbSize + 8.dp)
                 .padding(4.dp)
-                .scale(pulseScale)
                 .shadow(
-                    elevation = 8.dp,
+                    elevation = glowIntensity.dp,
                     shape = CircleShape,
-                    ambientColor = DeepSpruce,
-                    spotColor = WarmTerracotta
+                    ambientColor = WarmTerracotta,
+                    spotColor = Color.White
                 )
                 .clip(CircleShape)
                 .background(
-                    Brush.linearGradient(
+                    Brush.radialGradient(
                         colors = listOf(WarmTerracotta, WarmTerracottaDark)
                     )
                 )
@@ -132,7 +144,7 @@ fun SwipeToUnlockSlider(
                                 thumbOffset.animateTo(
                                     targetValue = 0f,
                                     animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        dampingRatio = Spring.DampingRatioHighBouncy,
                                         stiffness = Spring.StiffnessLow
                                     )
                                 )
@@ -146,7 +158,7 @@ fun SwipeToUnlockSlider(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(36.dp)
             )
         }
     }

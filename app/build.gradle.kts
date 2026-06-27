@@ -72,6 +72,9 @@ dependencies {
     // JSON
     implementation(libs.gson)
 
+    // Image Loading
+    implementation(libs.coil.compose)
+
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
